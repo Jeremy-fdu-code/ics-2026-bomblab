@@ -39,16 +39,60 @@ int solve_phase_1(uint64_t challenge, char *out, size_t cap) {
 
 int solve_phase_2(uint64_t challenge, char *out, size_t cap) {
     uint32_t values[MAX_FIELDS] = {0};
-    size_t count = 0;
+    size_t count = 6;
     (void)challenge;
+    values[0] = (uint32_t)((challenge >> 42) & 0xFFu) + 8u;
+    for (uint32_t i = 1; i < 6; ++i) {
+    uint32_t part = (uint32_t)((challenge >> (i + 4)) & 0xFu);
+    part = part ^ (i + 10);
+    values[i] = part + 5u * values[i - 1];
+    }
     // TODO: 根据 phase_02 的汇编，用 challenge 算出口令中的各个整数，依次存入 values，并把 count 改为整数个数。
     return write_answer(out, cap, values, count);
 }
 
 int solve_phase_3(uint64_t challenge, char *out, size_t cap) {
     uint32_t values[MAX_FIELDS] = {0};
-    size_t count = 0;
+    size_t count = 2;
+    uint32_t index = (uint32_t)challenge & 7u;
+
+    uint32_t x = (uint32_t)(challenge >> 32)^ (uint32_t)(challenge >> 3);
+
+    values[0] = index;
     (void)challenge;
+    switch (index) {
+    case 0:   // p3_case_2
+        values[1] = 3u * x + 0xF344u;
+        break;
+
+    case 1:   // p3_case_6
+        values[1] = (x ^ 0xCDF3u) + (x >> 1);
+        break;
+
+    case 2:   // p3_case_1
+        values[1] = 5u * x + 0x49FD4u;
+        break;
+
+    case 3:   // p3_case_7
+        values[1] = 3u * x + 0x932Eu;
+        break;
+
+    case 4:   // p3_case_3
+        values[1] = (2u * x) ^ 0x7519u;
+        break;
+
+    case 5:   // p3_case_5
+        values[1] = 5u * x + 0x4D25Bu;
+        break;
+
+    case 6:   // p3_case_0
+        values[1] = (x ^ 0x40B5u) + (x >> 2);
+        break;
+
+    case 7:   // p3_case_4
+        values[1] = (4u * x) ^ 0xEC2Bu;
+        break;
+}
     // TODO: 根据 phase_03 的汇编，用 challenge 算出口令中的各个整数，依次存入 values，并把 count 改为整数个数。
     return write_answer(out, cap, values, count);
 }
