@@ -132,9 +132,49 @@ uint32_t target = (uint32_t)challenge & 0x7Fu;
 
 int solve_phase_5(uint64_t challenge, char *out, size_t cap) {
     uint32_t values[MAX_FIELDS] = {0};
-    size_t count = 0;
+    size_t count = 2;
     (void)challenge;
-    // TODO: 根据 phase_05 的汇编，用 challenge 算出口令中的各个整数，依次存入 values，并把 count 改为整数个数。
+    static const uint32_t node_values[12] = {
+    0xCE7Bu, 0x4EE0u, 0xC579u, 0x3F4Au,
+    0x28A2u, 0xD6C0u, 0x439Eu, 0x2EF9u,
+    0x5789u, 0x55BAu, 0x4C2Cu, 0x432Du
+};
+
+static const uint32_t node_tags[12] = {
+    0x0042u, 0x0654u, 0x0B4Au, 0x0A6Cu,
+    0x0417u, 0x0960u, 0x0782u, 0x022Cu,
+    0x0541u, 0x013Bu, 0x0887u, 0x035Bu
+};
+
+static const int next_node[12] = {
+    11, 7, 6, 8, 10, 3, 9, 4, 2, 1, 0, -1
+};
+
+static const int heads[8] = {
+    5, 3, 8, 2, 6, 9, 1, 7
+};
+int node = heads[(uint32_t)challenge & 7u];
+
+unsigned visits = (unsigned)((challenge >> 3) & 3u) + 1u;
+
+    uint32_t acc = (uint32_t)(challenge >> 6)
+             ^ (uint32_t)(challenge >> 32)
+             ^ 0xD4ECu;
+
+uint32_t last_tag = 0;
+
+for (unsigned i = 0; i < visits; ++i) {
+    last_tag = node_tags[node];
+
+    acc = (5u * (acc + node_values[node])) ^ last_tag;
+
+    if (i + 1u < visits) {
+        node = next_node[node];
+    }
+}
+
+values[0] = acc;
+values[1] = last_tag;
     return write_answer(out, cap, values, count);
 }
 
@@ -142,6 +182,7 @@ int solve_phase_6(uint64_t challenge, char *out, size_t cap) {
     uint32_t values[MAX_FIELDS] = {0};
     size_t count = 0;
     (void)challenge;
+    
     // TODO: 根据 phase_06 的汇编，用 challenge 算出口令中的各个整数，依次存入 values，并把 count 改为整数个数。
     return write_answer(out, cap, values, count);
 }
