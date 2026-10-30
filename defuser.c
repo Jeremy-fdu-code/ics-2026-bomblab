@@ -178,12 +178,51 @@ values[1] = last_tag;
     return write_answer(out, cap, values, count);
 }
 
+static uint32_t phase6_op(uint32_t op, uint32_t x) {
+    switch (op) {
+        case 0:
+            return (x + 0x5081u) ^ (x >> 7);
+
+        case 1:
+            return ((x << 5) | (x >> 27)) ^ 0xC44Cu;
+
+        case 2:
+            return (x ^ 0xB7F1u) + (x << 7);
+
+        case 3:
+            return (4u * x + 0xF464u) ^ (3u * x);
+
+        case 4:
+            return ((x >> 2) ^ x) + 0xEBu;
+
+        case 5:
+            return (x >> 5) | (x << 27);
+
+        default:
+            return 0;
+    }
+}
+
 int solve_phase_6(uint64_t challenge, char *out, size_t cap) {
     uint32_t values[MAX_FIELDS] = {0};
-    size_t count = 0;
-    (void)challenge;
-    
-    // TODO: 根据 phase_06 的汇编，用 challenge 算出口令中的各个整数，依次存入 values，并把 count 改为整数个数。
+    size_t count = 1;
+
+    static const uint32_t ops[8] = {
+        1, 5, 5, 3, 4, 2, 0, 1
+    };
+
+    uint32_t first = (uint32_t)challenge & 7u;
+    uint32_t second = (uint32_t)(challenge >> 3) & 7u;
+
+    uint32_t x = (uint32_t)(challenge >> 6)
+               ^ (uint32_t)(challenge >> 32);
+
+    x = phase6_op(ops[first], x);
+    x ^= 0xE39Du;
+
+    x = phase6_op(ops[second], x);
+    values[0] = x + 0xA29Du;
+
     return write_answer(out, cap, values, count);
 }
 
